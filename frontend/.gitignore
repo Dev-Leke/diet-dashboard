@@ -11,6 +11,9 @@ node_modules
 dist
 dist-ssr
 *.local
+# Environment files - NEVER commit these
+.env
+**/.env
 
 # Editor directories and files
 .vscode/*
