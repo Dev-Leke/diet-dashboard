@@ -1,0 +1,61 @@
+{
+  "meta": {
+    "recordCount": 98,
+    "executionTimeMs": 47,
+    "generatedAt": "2026-07-14T09:00:00Z",
+    "filterApplied": "all"
+  },
+  "filters": {
+    "dietTypes": ["all", "vegan", "keto", "paleo", "vegetarian", "omnivore"]
+  },
+  "charts": {
+    "bar": {
+      "title": "Average Macronutrients by Diet Type (g)",
+      "labels": ["Vegan", "Keto", "Paleo", "Vegetarian", "Omnivore"],
+      "datasets": [
+        { "label": "Protein", "data": [18, 32, 29, 19, 27] },
+        { "label": "Carbs", "data": [55, 8, 20, 50, 40] },
+        { "label": "Fat", "data": [15, 45, 35, 20, 30] }
+      ]
+    },
+    "line": {
+      "title": "Average Calories by Diet Type (kcal)",
+      "labels": ["Vegan", "Keto", "Paleo", "Vegetarian", "Omnivore"],
+      "datasets": [
+        { "label": "Avg Calories", "data": [410, 620, 540, 430, 560] }
+      ]
+    },
+    "pie": {
+      "title": "Recipe Distribution by Diet Type",
+      "labels": ["Vegan", "Keto", "Paleo", "Vegetarian", "Omnivore"],
+      "data": [24, 18, 15, 22, 19]
+    }
+  },
+  "recipes": [
+    { "id": 1, "name": "Vegan Skillet #1", "dietType": "vegan", "protein": 19, "carbs": 42, "fat": 13, "calories": 383 },
+    { "id": 2, "name": "Vegan Wrap #2", "dietType": "vegan", "protein": 20, "carbs": 60, "fat": 18, "calories": 369 },
+    { "id": 3, "name": "Vegan Soup #3", "dietType": "vegan", "protein": 17, "carbs": 42, "fat": 13, "calories": 411 },
+    { "id": 4, "name": "Vegan Stew #4", "dietType": "vegan", "protein": 14, "carbs": 47, "fat": 16, "calories": 414 },
+    { "id": 5, "name": "Vegan Grill #5", "dietType": "vegan", "protein": 15, "carbs": 57, "fat": 17, "calories": 361 },
+    { "id": 6, "name": "Keto Plate #1", "dietType": "keto", "protein": 37, "carbs": 9, "fat": 41, "calories": 569 },
+    { "id": 7, "name": "Keto Curry #2", "dietType": "keto", "protein": 39, "carbs": 7, "fat": 36, "calories": 560 },
+    { "id": 8, "name": "Keto Bowl #3", "dietType": "keto", "protein": 38, "carbs": 8, "fat": 52, "calories": 654 },
+    { "id": 9, "name": "Keto Salad #4", "dietType": "keto", "protein": 33, "carbs": 10, "fat": 42, "calories": 628 },
+    { "id": 10, "name": "Keto Stir-fry #5", "dietType": "keto", "protein": 37, "carbs": 8, "fat": 53, "calories": 632 },
+    { "id": 11, "name": "Paleo Skillet #1", "dietType": "paleo", "protein": 32, "carbs": 15, "fat": 30, "calories": 513 },
+    { "id": 12, "name": "Paleo Wrap #2", "dietType": "paleo", "protein": 23, "carbs": 17, "fat": 28, "calories": 511 },
+    { "id": 13, "name": "Paleo Soup #3", "dietType": "paleo", "protein": 31, "carbs": 19, "fat": 33, "calories": 502 },
+    { "id": 14, "name": "Paleo Stew #4", "dietType": "paleo", "protein": 26, "carbs": 24, "fat": 38, "calories": 554 },
+    { "id": 15, "name": "Paleo Grill #5", "dietType": "paleo", "protein": 24, "carbs": 22, "fat": 29, "calories": 524 },
+    { "id": 16, "name": "Vegetarian Plate #1", "dietType": "vegetarian", "protein": 24, "carbs": 53, "fat": 21, "calories": 449 },
+    { "id": 17, "name": "Vegetarian Curry #2", "dietType": "vegetarian", "protein": 22, "carbs": 57, "fat": 17, "calories": 382 },
+    { "id": 18, "name": "Vegetarian Bowl #3", "dietType": "vegetarian", "protein": 17, "carbs": 44, "fat": 17, "calories": 476 },
+    { "id": 19, "name": "Vegetarian Salad #4", "dietType": "vegetarian", "protein": 23, "carbs": 45, "fat": 22, "calories": 419 },
+    { "id": 20, "name": "Vegetarian Stir-fry #5", "dietType": "vegetarian", "protein": 23, "carbs": 49, "fat": 18, "calories": 404 },
+    { "id": 21, "name": "Omnivore Skillet #1", "dietType": "omnivore", "protein": 28, "carbs": 35, "fat": 31, "calories": 613 },
+    { "id": 22, "name": "Omnivore Wrap #2", "dietType": "omnivore", "protein": 26, "carbs": 34, "fat": 37, "calories": 561 },
+    { "id": 23, "name": "Omnivore Soup #3", "dietType": "omnivore", "protein": 21, "carbs": 31, "fat": 24, "calories": 577 },
+    { "id": 24, "name": "Omnivore Stew #4", "dietType": "omnivore", "protein": 31, "carbs": 38, "fat": 23, "calories": 544 },
+    { "id": 25, "name": "Omnivore Grill #5", "dietType": "omnivore", "protein": 34, "carbs": 41, "fat": 37, "calories": 608 }
+  ]
+}

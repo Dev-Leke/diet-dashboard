@@ -1,122 +1,94 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useCallback, useEffect, useState } from "react";
+import "./chartSetup";
+import { fetchInsights } from "./api/dataSource.js";
+import Header from "./components/Header.jsx";
+import FilterBar from "./components/FilterBar.jsx";
+import ApiActions from "./components/ApiActions.jsx";
+import InsightsBarChart from "./components/charts/InsightsBarChart.jsx";
+import InsightsScatterChart from "./components/charts/InsightsScatterChart.jsx";
+import CorrelationHeatmap from "./components/charts/CorrelationHeatmap.jsx";
+import InsightsPieChart from "./components/charts/InsightsPieChart.jsx";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [selectedDiet, setSelectedDiet] = useState("all");
+  const [payload, setPayload] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const load = useCallback(async (diet) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchInsights(diet);
+      setPayload(data);
+    } catch (err) {
+      setError(err.message ?? "Failed to load insights");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load(selectedDiet);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleDietChange = (diet) => {
+    setSelectedDiet(diet);
+    load(diet);
+  };
+
+  const handleRefresh = () => load(selectedDiet);
+
+  const dietTypes = payload?.filters?.dietTypes ?? ["all"];
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="min-h-screen bg-gray-100">
+      <Header />
 
-      <div className="ticks"></div>
+      <main className="container mx-auto p-6">
+        <section className="mb-8">
+          <h2 className="text-2xl font-semibold mb-4">Explore Nutritional Insights</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <InsightsBarChart data={payload?.charts?.bar} />
+            <InsightsScatterChart data={payload?.charts?.scatter} />
+            <CorrelationHeatmap data={payload?.charts?.heatmap} />
+            <InsightsPieChart data={payload?.charts?.pie} />
+          </div>
+        </section>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        <section className="mb-8">
+          <h2 className="text-2xl font-semibold mb-4">Filters and Data Interaction</h2>
+          <FilterBar
+            dietTypes={dietTypes}
+            selectedDiet={selectedDiet}
+            onDietChange={handleDietChange}
+            onRefresh={handleRefresh}
+            loading={loading}
+          />
+        </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        {error && (
+          <div className="mb-8 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-4">
+            Couldn&apos;t load insights: {error}
+          </div>
+        )}
+
+        <section>
+          <h2 className="text-2xl font-semibold mb-4">API Data Interaction</h2>
+          <ApiActions
+            selectedDiet={selectedDiet}
+            onGetInsights={handleRefresh}
+            insightsLoading={loading}
+          />
+        </section>
+      </main>
+
+      <footer className="bg-purple-300 p-4 text-white text-center mt-10">
+        <p>&copy; 2026 Nutritional Insights. All Rights Reserved.</p>
+      </footer>
+    </div>
+  );
 }
 
-export default App
+export default App;
