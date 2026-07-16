@@ -6,7 +6,6 @@ import FilterBar from "./components/FilterBar.jsx";
 import ApiActions from "./components/ApiActions.jsx";
 import InsightsBarChart from "./components/charts/InsightsBarChart.jsx";
 import InsightsScatterChart from "./components/charts/InsightsScatterChart.jsx";
-import CorrelationHeatmap from "./components/charts/CorrelationHeatmap.jsx";
 import InsightsPieChart from "./components/charts/InsightsPieChart.jsx";
 
 function App() {
@@ -49,10 +48,9 @@ function App() {
       <main className="container mx-auto p-6">
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">Explore Nutritional Insights</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <InsightsBarChart data={payload?.charts?.bar} />
             <InsightsScatterChart data={payload?.charts?.scatter} />
-            <CorrelationHeatmap data={payload?.charts?.heatmap} />
             <InsightsPieChart data={payload?.charts?.pie} />
           </div>
         </section>
@@ -83,10 +81,6 @@ function App() {
           />
         </section>
       </main>
-
-      <footer className="bg-purple-300 p-4 text-white text-center mt-10">
-        <p>&copy; 2026 Nutritional Insights. All Rights Reserved.</p>
-      </footer>
     </div>
   );
 }

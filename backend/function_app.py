@@ -55,10 +55,14 @@ def clean(df):
 
     # carbs to fat ratio
     df['carbs_to_fat_ratio'] = df['Carbs(g)'] / df['Fat(g)']
+
+    df = df.replace([float('inf'), float('-inf')], pd.NA)
     return df
 
 
 def r1(v):
+    if v is None or pd.isna(v):
+        return 0.0
     return round(float(v), 1)
 
 
