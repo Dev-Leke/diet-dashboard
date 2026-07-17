@@ -124,7 +124,7 @@ export default function ApiActions({ selectedDiet, onGetInsights, insightsLoadin
                   <th className="py-2 pr-3">Protein</th>
                   <th className="py-2 pr-3">Carbs</th>
                   <th className="py-2 pr-3">Fat</th>
-                  <th className="py-2 pr-3">Calories</th>
+                  
                 </tr>
               </thead>
               <tbody>
@@ -135,7 +135,7 @@ export default function ApiActions({ selectedDiet, onGetInsights, insightsLoadin
                     <td className="py-2 pr-3">{r.protein}g</td>
                     <td className="py-2 pr-3">{r.carbs}g</td>
                     <td className="py-2 pr-3">{r.fat}g</td>
-                    <td className="py-2 pr-3">{r.calories}</td>
+                    
                   </tr>
                 ))}
               </tbody>
@@ -194,7 +194,7 @@ export default function ApiActions({ selectedDiet, onGetInsights, insightsLoadin
                 <p className="text-xs text-gray-600">Protein: {cluster.avgProtein}g</p>
                 <p className="text-xs text-gray-600">Carbs: {cluster.avgCarbs}g</p>
                 <p className="text-xs text-gray-600">Fat: {cluster.avgFat}g</p>
-                <p className="text-xs text-gray-600">Calories: {cluster.avgCalories}</p>
+                
               </div>
             ))}
           </div>

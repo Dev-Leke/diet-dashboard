@@ -154,8 +154,8 @@ function computeScatter(recipes) {
 }
 
 
-const CORRELATION_FIELDS = ["protein", "carbs", "fat", "calories"];
-const CORRELATION_LABELS = ["Protein", "Carbs", "Fat", "Calories"];
+const CORRELATION_FIELDS = ["protein", "carbs", "fat"];
+const CORRELATION_LABELS = ["Protein", "Carbs", "Fat",];
 
 function pearson(xs, ys) {
   const n = xs.length;
@@ -246,7 +246,6 @@ function computeClusters(recipes, k = 3) {
       avgProtein: avg("protein"),
       avgCarbs: avg("carbs"),
       avgFat: avg("fat"),
-      avgCalories: avg("calories"),
       dietTypes: [...new Set(members.map((r) => r.dietType))],
     });
   }
