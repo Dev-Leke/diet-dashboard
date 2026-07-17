@@ -6,6 +6,7 @@ import time
 from datetime import datetime, timezone
 
 import azure.functions as func
+import numpy as np
 import pandas as pd
 from azure.storage.blob import BlobServiceClient
 
@@ -126,6 +127,77 @@ def build_payload(df, diet_filter):
     }
 
 
+def build_recipes_payload(view, diet_filter):
+    recipes = [
+        {
+            "id": int(idx),
+            "name": str(row['Recipe_name']),
+            "dietType": row['Diet_type'],
+            "protein": r1(row['Protein(g)']),
+            "carbs": r1(row['Carbs(g)']),
+            "fat": r1(row['Fat(g)']),
+        }
+        for idx, row in view.iterrows()
+    ]
+    return {
+        "meta": {"record_count": len(recipes), "filter_applied": diet_filter},
+        "recipes": recipes,
+    }
+
+
+CLUSTER_NAMES = ["High-Protein / Low-Carb", "Balanced Macro Profile", "High-Carb / Low-Protein"]
+
+
+def compute_clusters(view, k=3):
+    points = view[nutrition_cols].to_numpy(dtype=float)
+    n = len(points)
+    if n == 0:
+        return []
+
+    k_eff = min(k, n)
+    order = points[:, 0].argsort()
+    centroids = np.array([points[order[int((i + 0.5) * (n / k_eff))]] for i in range(k_eff)])
+
+    # lloyd's algorithm, same fixed iteration count as the old client-side version
+    assignments = np.zeros(n, dtype=int)
+    for _ in range(15):
+        dists = ((points[:, None, :] - centroids[None, :, :]) ** 2).sum(axis=2)
+        assignments = dists.argmin(axis=1)
+        for c in range(k_eff):
+            mask = assignments == c
+            if mask.any():
+                centroids[c] = points[mask].mean(axis=0)
+
+    diet_col = view['Diet_type'].to_numpy()
+    clusters = []
+    for c in range(k_eff):
+        mask = assignments == c
+        if not mask.any():
+            continue
+        members = points[mask]
+        clusters.append({
+            "id": c,
+            "recipeCount": int(mask.sum()),
+            "avgProtein": r1(members[:, 0].mean()),
+            "avgCarbs": r1(members[:, 1].mean()),
+            "avgFat": r1(members[:, 2].mean()),
+            "dietTypes": sorted(set(diet_col[mask].tolist())),
+        })
+
+    clusters.sort(key=lambda cl: cl["avgProtein"], reverse=True)
+    for i, cl in enumerate(clusters):
+        cl["label"] = CLUSTER_NAMES[i] if i < len(CLUSTER_NAMES) else f"Cluster {i + 1}"
+
+    return clusters
+
+
+def build_clusters_payload(view, diet_filter):
+    return {
+        "meta": {"record_count": int(len(view)), "filter_applied": diet_filter},
+        "clusters": compute_clusters(view),
+    }
+
+
 def json_response(body, status=200):
     return func.HttpResponse(
         json.dumps(body), status_code=status, mimetype="application/json"
@@ -143,12 +215,21 @@ def dashboard(req: func.HttpRequest) -> func.HttpResponse:
         return json_response({"error": "failed to read dataset from blob storage"}, 500)
 
     diet = (req.params.get('diet') or "all").strip().lower()
+    action = (req.params.get('action') or "insights").strip().lower()
     valid = sorted(df['Diet_type'].unique().tolist())
 
     if diet != "all" and diet not in valid:
         return json_response({"error": f"unknown diet type {diet}", "valid_diets": valid}, 400)
 
-    payload = build_payload(df, diet)
+    if action == "insights":
+        payload = build_payload(df, diet)
+    elif action in ("recipes", "clusters"):
+        view = df if diet == "all" else df[df['Diet_type'] == diet]
+        payload = build_recipes_payload(view, diet) if action == "recipes" else build_clusters_payload(view, diet)
+        payload["meta"]["valid_diets"] = valid
+        payload["meta"]["generated_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    else:
+        return json_response({"error": f"unknown action {action}", "valid_actions": ["insights", "recipes", "clusters"]}, 400)
 
     # how long the function took, gets shown on the dashboard
     payload["meta"]["execution_ms"] = round((time.perf_counter() - start) * 1000, 1)
