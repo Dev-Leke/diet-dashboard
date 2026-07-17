@@ -30,7 +30,33 @@ export async function fetchInsights(dietFilter = "all") {
     return res.json();
   }
 
+  const api = await callAction("insights", dietFilter);
+  return adapt(api);
+}
+
+export async function fetchRecipes(dietFilter = "all") {
+  const api = await callAction("recipes", dietFilter);
+  return {
+    meta: adaptMeta(api.meta),
+    recipes: api.recipes ?? [],
+  };
+}
+
+export async function fetchClusters(dietFilter = "all") {
+  const api = await callAction("clusters", dietFilter);
+  return {
+    meta: adaptMeta(api.meta),
+    clusters: api.clusters ?? [],
+  };
+}
+
+async function callAction(action, dietFilter) {
+  if (CONFIG.useMock) {
+    return runMockAction(action, dietFilter);
+  }
+
   const url = new URL(CONFIG.functionUrl);
+  url.searchParams.set("action", action);
   if (dietFilter && dietFilter !== "all") {
     url.searchParams.set("diet", dietFilter);
   }
@@ -39,8 +65,111 @@ export async function fetchInsights(dietFilter = "all") {
   if (!res.ok) {
     throw new Error(`Request failed: ${res.status} ${res.statusText}`);
   }
-  const api = await res.json();
-  return adapt(api);
+  return res.json();
+}
+
+function filterRecipesByDiet(recipes, dietFilter) {
+  if (!dietFilter || dietFilter === "all") return recipes;
+  return recipes.filter((r) => r.dietType.toLowerCase() === dietFilter.toLowerCase());
+}
+
+function computeClusters(recipes, k = 3) {
+  if (recipes.length === 0) return [];
+
+  const points = recipes.map((r) => [r.protein, r.carbs, r.fat]);
+  const n = points.length;
+  const kEff = Math.min(k, n);
+
+  const sortedIdx = [...points.keys()].sort((a, b) => points[a][0] - points[b][0]);
+  let centroids = Array.from({ length: kEff }, (_, i) => {
+    const idx = sortedIdx[Math.floor((i + 0.5) * (n / kEff))];
+    return [...points[idx]];
+  });
+
+  let assignments = Array.from({ length: n }, () => 0);
+  for (let iter = 0; iter < 15; iter++) {
+    for (let i = 0; i < n; i++) {
+      let best = 0;
+      let bestDist = Infinity;
+      for (let c = 0; c < kEff; c++) {
+        const dist = squaredDistance(points[i], centroids[c]);
+        if (dist < bestDist) {
+          bestDist = dist;
+          best = c;
+        }
+      }
+      assignments[i] = best;
+    }
+
+    const sums = Array.from({ length: kEff }, () => [0, 0, 0, 0]);
+    for (let i = 0; i < n; i++) {
+      const c = assignments[i];
+      sums[c][0] += points[i][0];
+      sums[c][1] += points[i][1];
+      sums[c][2] += points[i][2];
+      sums[c][3] += 1;
+    }
+    centroids = sums.map((s, c) => (s[3] > 0 ? [s[0] / s[3], s[1] / s[3], s[2] / s[3]] : centroids[c]));
+  }
+
+  const clusters = [];
+  for (let c = 0; c < kEff; c++) {
+    const members = recipes.filter((_, i) => assignments[i] === c);
+    if (!members.length) continue;
+    const avg = (field) =>
+      Math.round(members.reduce((sum, r) => sum + r[field], 0) / members.length);
+    clusters.push({
+      id: c,
+      recipeCount: members.length,
+      avgProtein: avg("protein"),
+      avgCarbs: avg("carbs"),
+      avgFat: avg("fat"),
+      dietTypes: [...new Set(members.map((r) => r.dietType))],
+    });
+  }
+
+  clusters.sort((a, b) => b.avgProtein - a.avgProtein);
+  const names = ["High-Protein / Low-Carb", "Balanced Macro Profile", "High-Carb / Low-Protein"];
+  clusters.forEach((cl, i) => {
+    cl.label = names[i] ?? `Cluster ${i + 1}`;
+  });
+
+  return clusters;
+}
+
+function squaredDistance(a, b) {
+  return a.reduce((sum, val, i) => sum + (val - b[i]) ** 2, 0);
+}
+
+async function runMockAction(action, dietFilter) {
+  const res = await fetch(CONFIG.mockUrl, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Mock fetch failed: ${res.status} ${res.statusText}`);
+  const full = await res.json();
+
+  const executionTimeMs = 25 + Math.round(Math.random() * 60);
+  await new Promise((resolve) => setTimeout(resolve, executionTimeMs));
+
+  const filteredRecipes = filterRecipesByDiet(full.recipes ?? [], dietFilter);
+  const meta = {
+    record_count: filteredRecipes.length,
+    filter_applied: dietFilter || "all",
+    execution_ms: executionTimeMs,
+    generated_at: new Date().toISOString(),
+    valid_diets: full.meta?.valid_diets ?? [],
+  };
+
+  return action === "recipes"
+    ? { meta, recipes: filteredRecipes }
+    : { meta, clusters: computeClusters(filteredRecipes) };
+}
+
+function adaptMeta(meta) {
+  return {
+    recordCount: meta?.record_count ?? 0,
+    executionTimeMs: meta?.execution_ms ?? 0,
+    filterApplied: meta?.filter_applied ?? "all",
+    generatedAt: meta?.generated_at ?? new Date().toISOString(),
+  };
 }
 
 function adapt(api) {
