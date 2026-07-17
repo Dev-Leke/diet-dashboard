@@ -3,11 +3,11 @@ import DietDropdown from "./DietDropdown.jsx";
 
 const LABELS = {
   all: "All Diet Types",
-  vegan: "Vegan",
+  dash: "DASH",
   keto: "Keto",
+  mediterranean: "Mediterranean",
   paleo: "Paleo",
-  vegetarian: "Vegetarian",
-  omnivore: "Omnivore",
+  vegan: "Vegan",
 };
 
 export default function FilterBar({
@@ -89,7 +89,7 @@ export default function FilterBar({
       </div>
       {searchError && (
         <p className="text-xs text-red-500 mt-2">
-          No diet type matches "{search}". Try vegan, keto, paleo, vegetarian, or omnivore.
+          No diet type matches "{search}". Try dash, keto, mediterranean, paleo, or vegan.
         </p>
       )}
     </div>

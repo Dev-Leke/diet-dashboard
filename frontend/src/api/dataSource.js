@@ -15,6 +15,10 @@ const DIET_LABELS = {
   vegan: "Vegan",
 };
 
+if (import.meta.env.PROD && CONFIG.useMock) {
+  console.error("VITE_FUNCTION_URL missing — serving MOCK data");
+}
+
 function label(diet) {
   return DIET_LABELS[diet] ?? diet;
 }

@@ -7,6 +7,7 @@ import ApiActions from "./components/ApiActions.jsx";
 import InsightsBarChart from "./components/charts/InsightsBarChart.jsx";
 import InsightsScatterChart from "./components/charts/InsightsScatterChart.jsx";
 import InsightsPieChart from "./components/charts/InsightsPieChart.jsx";
+import StatsPanel from "./components/StatsPanel.jsx";
 
 function App() {
   const [selectedDiet, setSelectedDiet] = useState("all");
@@ -53,6 +54,7 @@ function App() {
             <InsightsScatterChart data={payload?.charts?.scatter} />
             <InsightsPieChart data={payload?.charts?.pie} />
           </div>
+          <StatsPanel meta={payload?.meta} loading={loading} />
         </section>
 
         <section className="mb-8">
